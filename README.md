@@ -21,8 +21,11 @@ o	Add a monetization option for the organizer in the secondary market sales
 2.	Create a small web app to show the current state (supply, what the accounts own, balances) and buttons to demonstrate the different functions.
 
 Minimal requirements:
+
 •	Include a docker-compose file to spin up the infrastructure needed to run the app
+
 •	Documentation is everything, explain what happens and how to run/deploy
 
 Delivery:
+
 •	Send me a Github/GitLab/… link to the source code and docs
