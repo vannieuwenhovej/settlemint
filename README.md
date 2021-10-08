@@ -29,11 +29,11 @@ Enough said, good luck with the assignment!
 
 ### Minimal requirements:
 
-•	Include a docker-compose file to spin up the infrastructure needed to run the app
+- Include a docker-compose file to spin up the infrastructure needed to run the app
 
-•	Documentation is everything, explain what happens and how to run/deploy
+- Documentation is everything, explain what happens and how to run/deploy
 
 
 ### Delivery:
 
-•	Send me a Github/GitLab/… link to the source code and docs
+- Send me a Github/GitLab/… link to the source code and docs
