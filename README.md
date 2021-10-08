@@ -16,13 +16,13 @@ Enough said, good luck with the assignment!
 
 1.	Create a non-fungible token that represents tickets for a festival and a fungible currency token using the chain technology of your choice (Solidity, Chaincode, Cordapp, ...)
 	
-	o	There are maximum 1000 tickets
+	- There are maximum 1000 tickets
 
-	o	You can buy tickets from the organizer at a fixed price in the currency token
+	- You can buy tickets from the organizer at a fixed price in the currency token
 
-	o	You can buy for and sell tickets to others, but the price can never be higher than 110% of the previous sale
+	- You can buy for and sell tickets to others, but the price can never be higher than 110% of the previous sale
 
-	o	Add a monetization option for the organizer in the secondary market sales
+	- Add a monetization option for the organizer in the secondary market sales
 
 2.	Create a small web app to show the current state (supply, what the accounts own, balances) and buttons to demonstrate the different functions.
 	
