@@ -23,5 +23,6 @@ o	Add a monetization option for the organizer in the secondary market sales
 Minimal requirements:
 •	Include a docker-compose file to spin up the infrastructure needed to run the app
 •	Documentation is everything, explain what happens and how to run/deploy
+
 Delivery:
 •	Send me a Github/GitLab/… link to the source code and docs
