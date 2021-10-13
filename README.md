@@ -1,5 +1,9 @@
 # settlemint
 
+### NPM packages used:
+- truffle
+- truffle-hdwallet-provider (?)
+
 
 # Assignment
 
