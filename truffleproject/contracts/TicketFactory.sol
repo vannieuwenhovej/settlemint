@@ -5,7 +5,7 @@ import "../node_modules/@openzeppelin/contracts/token/ERC721/ERC721.sol";
 // see spec: https://github.com/OpenZeppelin/openzeppelin-contracts
 
 contract TicketFactory is ERC721 {
-    //TODO: implement Onwable & onlyOwner functionality
+    //TODO: implement Ownable & onlyOwner functionality
 
     uint maxTicketSupply = 1000;
     Ticket[] public tickets;
