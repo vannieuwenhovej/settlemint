@@ -3,7 +3,7 @@
 ### NPM packages used:
 - truffle
 - truffle-hdwallet-provider (?)
-### Code env:
+### IDE:
 - editor: VS Code with extension juanblanco.solidity
 
 
