@@ -18,9 +18,7 @@ contract TicketFactory is ERC721, Ownable {
         uint initialPrice; // Some Tickets might be sold more expensive.
     }
 
-    /**
-    * @param _name name of contract
-    * @param _symbol symbol of token
+    /*
     Constructor is called when contract is first deployed.
     */
     constructor() ERC721("Ticket", "TICKET") {
@@ -60,7 +58,7 @@ contract TicketFactory is ERC721, Ownable {
         the index anymore. 
         https://docs.soliditylang.org/en/develop/types.html?highlight=array%20push#array-members
         */
-        for(uint i=1; i<_amount; i++){
+        for(uint i=1; (i<_amount && tickets.length<maxTicketSupply); i++){
             tickets.push(Ticket(_ticketType, _price));
             uint id = tickets.length - 1;
             ticketToOwner[id] = organizer;
