@@ -33,5 +33,12 @@ contract('Ticket', (accounts) => {
             const symbol = await contract.symbol()
             assert.equal(symbol, 'TICKET')
         })
+
+        
+        it('has a symbol', async () => {
+            const symbol = await contract.symbol()
+            assert.equal(symbol, 'TICKET')
+        })
+
     })
 })
