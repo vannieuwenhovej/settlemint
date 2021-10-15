@@ -1,6 +1,6 @@
 const { assert } = require('chai');
 
-const Ticket = artifacts.require('./Ticket.sol');
+const Ticket = artifacts.require('./TicketFactory.sol');
 
 // require('chai')
 //     .use(require('chai-as-promised'))
@@ -34,11 +34,12 @@ contract('Ticket', (accounts) => {
             assert.equal(symbol, 'TICKET')
         })
 
-        
-        it('has a symbol', async () => {
-            const symbol = await contract.symbol()
-            assert.equal(symbol, 'TICKET')
-        })
-
     })
+
+    // describe("minting", async() => {
+    //     it('creates a new token', async () => {
+    //         const result = await contract.mint("Normal", 10, 100);
+    //         const totalTickets = await
+    //     })
+    // })
 })
