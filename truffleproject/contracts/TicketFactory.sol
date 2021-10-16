@@ -12,12 +12,11 @@ contract TicketFactory is Ownable {
     uint maxTicketSupply;
     Ticket[] public tickets;
     mapping(uint => address) ticketToOwner;
-    enum ticketTypes {NORMAL, SPECIAL, VIP}
 
     address internal organizer; //Note that I differentiate owner & organizer
 
     struct Ticket {
-        ticketTypes ticketType; // "Normal", "Special", "VIP"
+        string ticketType; // "Normal", "Special", "VIP"
         uint16 initialPrice; 
         uint16 lastSalePrice; //implement functionality for indexed search in past logged events to deprecate this variable.
         uint16 currentPrice;
@@ -64,7 +63,7 @@ contract TicketFactory is Ownable {
     /**
     @dev Only organizer can mint new tickets.
      */
-    function mint(ticketTypes _ticketType, uint _amount, uint16 _price) public onlyOrganizer {
+    function mint(string memory _ticketType, uint _amount, uint16 _price) public onlyOrganizer {
         /*
         In solidity 0.5.0 you could use the return function from array.push()
         to get the ID. Since Solidity 0.6.0 the push() functions doesn't return
