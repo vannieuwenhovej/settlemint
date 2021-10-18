@@ -9,7 +9,7 @@ import "../node_modules/@openzeppelin/contracts/access/Ownable.sol";
 //TODO: make currency token ERC20
 contract TicketFactory is Ownable {
 
-    uint maxTicketSupply;
+    uint public maxTicketSupply;
     Ticket[] public tickets;
     mapping(uint => address) ticketToOwner;
 
@@ -26,8 +26,8 @@ contract TicketFactory is Ownable {
     /*
     Constructor is called when contract is first deployed.
     */
-    // constructor() ERC721("Ticket", "TICKET") {
-    // }
+    constructor(){
+    }
 
 
     /**
@@ -61,6 +61,13 @@ contract TicketFactory is Ownable {
     }
 
     /**
+    * @dev get tickets from Organizer
+    */
+    function totalTicketSupply() public view returns (uint total) {
+        return tickets.length;
+    }
+
+    /**
     @dev Only organizer can mint new tickets.
      */
     function mint(string memory _ticketType, uint _amount, uint16 _price) public onlyOrganizer {
@@ -70,7 +77,7 @@ contract TicketFactory is Ownable {
         the index anymore. 
         https://docs.soliditylang.org/en/develop/types.html?highlight=array%20push#array-members
         */
-        for(uint i=1; (i<_amount && tickets.length<maxTicketSupply); i++){
+        for(uint i=0; (i<_amount && tickets.length<maxTicketSupply); i++){
             tickets.push(Ticket(_ticketType, _price, _price, _price));
             uint id = tickets.length - 1;
             ticketToOwner[id] = organizer;
