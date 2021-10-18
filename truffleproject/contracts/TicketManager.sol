@@ -12,13 +12,13 @@ contract TicketManager is TicketFactory {
         _;
     }
 
-    constructor() TicketFactory(){
-        maxTicketSupply = 1000;
-        monetization = 0;
+    constructor(uint256 _maxSupply, uint256 _monetization) TicketFactory(){
+        maxTicketSupply = _maxSupply;
+        monetization = uint(_monetization);
     }
 
     function setMonetization(uint _monetization) external onlyOrganizer() {
-        require( _monetization >= 0, "Monetization fee can't be negative");
+        require( _monetization >= 0, "Monetization fee can't be negative"); //unsigned integers can't be negative
         require( _monetization <= 10, "Monetization fee can't be higher than 10");
         monetization = _monetization;
     }
@@ -30,14 +30,6 @@ contract TicketManager is TicketFactory {
         uint fee = _price / 100 * monetization;
         return fee;
     }
-
-
-    /** 
-    @dev calculate and return total ticket price
-     */
-    // function getTotalPrice(uint _price) internal view returns(uint){
-    //     return _price + getFee(_price);
-    // }
 
     /** 
     @dev ticketowner can set the price of his ticket to max 110% of previous sale price.
