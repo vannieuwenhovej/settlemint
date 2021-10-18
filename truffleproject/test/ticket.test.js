@@ -126,7 +126,7 @@ contract('TicketOwnership', (accounts) => {
             it('alice can buy ticket form organizer', async () => {
                 let price = await contract.getPriceOf(0);
                 await token.allowance(alice, contract.address); //alow contract to spend
-                await token.increaseAllowance(contract.address, price, {from: alice}); //allow contract to spend 
+                await token.increaseAllowance(contract.address, price, {from: alice}); //allow contract to spend price of ticket
                 const result = await contract.buyTicket(0, {from: alice}); //contract spends
                 console.log(result);
                 assert(result.receipt.status, true);
