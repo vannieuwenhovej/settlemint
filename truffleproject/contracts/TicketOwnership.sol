@@ -2,23 +2,35 @@
 pragma solidity >=0.6.0 <0.9.0;
 
 import "./TicketManager.sol";
+import "./FestToken.sol";
 import "../node_modules/@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
 contract TicketOwnership is TicketManager, ERC721 {
     
     mapping (uint => address) approvedTicketsForResale;
+    address festTokenAddress;
 
 
     /*
     Constructor is called when contract is first deployed.
     */
-    constructor() ERC721("Ticket", "TICKET") {
+    constructor(string memory _name, string memory _symbol, uint256 _maxSupply, uint256 _monetization)
+     ERC721(_name, _symbol) 
+     TicketManager( _maxSupply, _monetization) {
+
     }
+
+    function setFestTokenAddress(address _address) external onlyOwner() {
+        festTokenAddress = _address;
+    }
+
+    event funcCalled(uint256 val);
 
     /**
     @dev Buys ticket from seller.
     */
-    function buyTicket(uint _ticketId) public payable {
+    function buyTicket(uint _ticketId) public {
+        emit funcCalled(1);
         address ticketOwner = ticketToOwner[_ticketId];
         require(ticketOwner != address(0), "Ticket expired or deleted");
         require(ticketOwner != msg.sender, "Cannot buy own tickets");
@@ -30,15 +42,18 @@ contract TicketOwnership is TicketManager, ERC721 {
     }
 
     /**
-    @dev buys ticket from organizer
+    @dev buys ticket from organizer with custom FEST currency
      */
-    function buyTicketFromOrganizer(uint _ticketId) public payable {
+    function buyTicketFromOrganizer(uint _ticketId) public {
         require(ticketToOwner[_ticketId] == organizer, "Ticket not directly sold by organizer");
-        require(tickets[_ticketId].currentPrice == msg.value, "Transaction value doesn't match ticket price");
-        payable(organizer).transfer(msg.value); //send tx value to organizer
+        //ERC20 checks balance availability already
+        FestToken(festTokenAddress).transferFrom(msg.sender, organizer, tickets[_ticketId].currentPrice);
         ticketToOwner[_ticketId] = msg.sender;
         emit Transfer(organizer, msg.sender, _ticketId); //ERC721
-        //todo: implement festtoken as currency
+    }
+
+    function getPriceOf(uint _ticketId) external view returns(uint256) {
+        return tickets[_ticketId].currentPrice;
     }
 
 
@@ -49,7 +64,7 @@ contract TicketOwnership is TicketManager, ERC721 {
         Ticket memory ticket = tickets[_ticketId];
         uint fee = getFee(ticket.currentPrice);
         require(approvedTicketsForResale[_ticketId] != address(0), "Ticket is not for sale");
-        require((ticket.currentPrice + fee) == msg.value, "Transaction value doesn't match ticket price");
+        require((ticket.currentPrice + fee) == msg.value, "asTransaction value doesn't match ticket price");
         address seller = ticketToOwner[_ticketId];
         //Give cut to organizer
         if(monetization > 0) {
