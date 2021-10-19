@@ -9,9 +9,10 @@ module.exports = function (deployer) {
   /* Ticket contract parameters */
   const _nameOfTicket = "Ticket";
   const _symbolOfTicket = "TICKET";
+  const _cdnOfTicket = "https://cdn.domain.com/api/token/";
   const _maxSupply = 1000;
   const _monetization = 0;
 
   deployer.deploy(FestToken, _nameOfToken, _symbolOfToken);
-  deployer.deploy(TicketOwnership, _nameOfTicket, _symbolOfTicket, _maxSupply, _monetization);
+  deployer.deploy(TicketOwnership, _nameOfTicket, _symbolOfTicket, _maxSupply, _monetization, _cdnOfTicket);
 };
