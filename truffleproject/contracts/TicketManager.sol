@@ -8,11 +8,14 @@ contract TicketManager is TicketFactory {
     uint monetization; //0 = no monetization set
     
     modifier onlyOwnerOf(uint _ticketId) {
-        require(msg.sender == ticketToOwner[_ticketId]);
+        // require(msg.sender == ticketToOwner[_ticketId]);
+        require(msg.sender == ownerOf(_ticketId));
         _;
     }
 
-    constructor(uint256 _maxSupply, uint256 _monetization) TicketFactory(){
+    constructor(uint256 _maxSupply, uint256 _monetization, string memory _name, 
+    string memory _symbol) TicketFactory(_name, _symbol){
+
         maxTicketSupply = _maxSupply;
         monetization = uint(_monetization);
     }
@@ -31,13 +34,20 @@ contract TicketManager is TicketFactory {
         return fee;
     }
 
+    /**
+    @dev calculate total price with fee
+    */
+    function resalePriceOf(uint _ticketId) public view returns(uint256) {
+        return tickets[_ticketId].currentPrice + getFee(tickets[_ticketId].currentPrice);
+    }
+
     /** 
     @dev ticketowner can set the price of his ticket to max 110% of previous sale price.
     */
     function setPrice(uint _ticketId, uint _price) internal onlyOwnerOf(_ticketId) returns(bool){
         Ticket storage ticket = tickets[_ticketId];
         //Require that price is not higher than 110% of previous sale
-        require(_price <= (ticket.lastSalePrice + (ticket.lastSalePrice/100*10)), 
+        require(_price <= uint((ticket.lastSalePrice + (ticket.lastSalePrice/10))), 
         "Price can not exceed previous sale price by more than 10%");
         require(_price > 0, "Price can not be zero");
         ticket.currentPrice = uint16(_price);

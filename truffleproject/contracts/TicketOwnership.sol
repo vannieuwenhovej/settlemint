@@ -5,7 +5,7 @@ import "./TicketManager.sol";
 import "./FestToken.sol";
 import "../node_modules/@openzeppelin/contracts/token/ERC721/ERC721.sol";
 
-contract TicketOwnership is TicketManager, ERC721 {
+contract TicketOwnership is TicketManager {
     
     mapping (uint => address) approvedTicketsForResale;
     address festTokenAddress;
@@ -14,9 +14,8 @@ contract TicketOwnership is TicketManager, ERC721 {
     /*
     Constructor is called when contract is first deployed.
     */
-    constructor(string memory _name, string memory _symbol, uint256 _maxSupply, uint256 _monetization)
-     ERC721(_name, _symbol) 
-     TicketManager( _maxSupply, _monetization) {
+    constructor(string memory _name, string memory _symbol, uint256 _maxSupply, uint256 _monetization, string memory _cdn)
+     TicketManager( _maxSupply, _monetization, _name, _symbol) {
 
     }
 
@@ -29,52 +28,62 @@ contract TicketOwnership is TicketManager, ERC721 {
     /**
     @dev Buys ticket from seller.
     */
-    function buyTicket(uint _ticketId) public {
-        emit funcCalled(1);
-        address ticketOwner = ticketToOwner[_ticketId];
-        require(ticketOwner != address(0), "Ticket expired or deleted");
-        require(ticketOwner != msg.sender, "Cannot buy own tickets");
-        if(ticketOwner == organizer){
-            buyTicketFromOrganizer(_ticketId);
-        } else {
-            buyResaleTicket(_ticketId);
-        }
-    }
+    // function buyTicket(uint _ticketId) public {
+    //     emit funcCalled(1);
+    //     address ticketOwner = ticketToOwner[_ticketId];
+    //     require(festTokenAddress != address(0), "ERC20 Currency address not set");
+    //     require(ticketOwner != address(0), "Ticket expired or deleted");
+    //     require(ticketOwner != msg.sender, "Cannot buy own tickets");
+    //     if(ticketOwner == organizer){
+    //         buyTicketFromOrganizer(_ticketId);
+    //     } else {
+    //         buyResaleTicket(_ticketId);
+    //     }
+    // }
 
     /**
     @dev buys ticket from organizer with custom FEST currency
      */
-    function buyTicketFromOrganizer(uint _ticketId) public {
-        require(ticketToOwner[_ticketId] == organizer, "Ticket not directly sold by organizer");
+    function buyTicketFromOrganizer(string memory _ticketType, uint _amount) public {
+        require(festTokenAddress != address(0), "ERC20 Currency address not set");
         //ERC20 checks balance availability already
-        FestToken(festTokenAddress).transferFrom(msg.sender, organizer, tickets[_ticketId].currentPrice);
-        ticketToOwner[_ticketId] = msg.sender;
-        emit Transfer(organizer, msg.sender, _ticketId); //ERC721
-    }
-
-    function getPriceOf(uint _ticketId) external view returns(uint256) {
-        return tickets[_ticketId].currentPrice;
+        require(FestToken(festTokenAddress).allowance(msg.sender, address(this)) 
+        >= defaultPriceOfType[_ticketType], "TicketContract is not allowed to spend amount");
+        
+        FestToken(festTokenAddress).transferFrom(msg.sender, organizer, defaultPriceOfType[_ticketType]);
+        mint(_ticketType, _amount, msg.sender);
+        // emit Transfer(organizer, msg.sender, _ticketId); //ERC721
     }
 
 
     /**
     @dev buys ticket from a seller and check monetization option
     */
-    function buyResaleTicket(uint _ticketId) public payable {
-        Ticket memory ticket = tickets[_ticketId];
-        uint fee = getFee(ticket.currentPrice);
+    function buyResaleTicket(uint _ticketId) public {
+        require(festTokenAddress != address(0), "ERC20 Currency address not set");
         require(approvedTicketsForResale[_ticketId] != address(0), "Ticket is not for sale");
-        require((ticket.currentPrice + fee) == msg.value, "asTransaction value doesn't match ticket price");
-        address seller = ticketToOwner[_ticketId];
-        //Give cut to organizer
-        if(monetization > 0) {
-            payable(organizer).transfer(fee);
-        } 
-        payable(seller).transfer(ticket.currentPrice); //send tx value to seller
-        ticketToOwner[_ticketId] = msg.sender;
-        emit Transfer(seller, msg.sender, _ticketId); //ERC721
+        require(FestToken(festTokenAddress).allowance(msg.sender, address(this))
+        >= resalePriceOf(_ticketId), "TicketContract is not allowed to spend amount");
+        require(getApproved(_ticketId) == address(this), "contract can't receive ticket"); //ERC721
+        address seller = ownerOf(_ticketId);
+        this.transferFrom(seller, msg.sender, _ticketId); //ERC721
+        FestToken(festTokenAddress).transferFrom(msg.sender, seller, resalePriceOf(_ticketId));
+        
+        // emit Transfer(seller, msg.sender, _ticketId); //ERC721
     }
 
+    /**
+    @dev changes a ticket to different owner
+     */
+    // function changeTicketOwner(uint _ticketId, address _to) internal {
+    //     //decrease tickettype balance of current owner
+    //     ticketTypeBalances[tickets[_ticketId].ticketType][ticketToOwner[_ticketId]]--;
+    //     //and increase tickettype balance of recepient
+    //     ticketTypeBalances[tickets[_ticketId].ticketType][_to]++;
+    //     //change owner
+    //     ticketToOwner[_ticketId] = _to;
+
+    // }
 
     /**
     @dev approves a ticket for resale.

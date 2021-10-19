@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.6.0 <0.9.0;
 
-// import "../node_modules/@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "../node_modules/@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "../node_modules/@openzeppelin/contracts/access/Ownable.sol";
 // see spec: https://github.com/OpenZeppelin/openzeppelin-contracts
 
 //TODO: write tests to check addresses and functionality
 //TODO: make currency token ERC20
-contract TicketFactory is Ownable {
+contract TicketFactory is Ownable, ERC721 {
 
     uint public maxTicketSupply;
     Ticket[] public tickets;
-    mapping(uint => address) ticketToOwner;
+    mapping(string => uint) defaultPriceOfType;
 
     address internal organizer; //Note that I differentiate owner & organizer
 
@@ -26,9 +26,11 @@ contract TicketFactory is Ownable {
     /*
     Constructor is called when contract is first deployed.
     */
-    constructor(){
-    }
+    // constructor(string memory _uri) ERC1155 (_uri){
+    // }
+    constructor(string memory _name, string memory _symbol) ERC721 (_name, _symbol){
 
+    }
 
     /**
     @dev throws if called by neither owner or organizer.
@@ -52,11 +54,26 @@ contract TicketFactory is Ownable {
     function setOrganizer(address _organizer) public onlyOwner {
         organizer = _organizer;
     }
-    
+
+    /**
+    @dev set default price for tickets
+    */
+    function setDefaultPriceFor(string memory _ticketType, uint _price) external onlyOrganizer {
+        defaultPriceOfType[_ticketType] = _price;
+    }
+
+    /**
+    @dev returns default price for ticket type
+    */
+    function defaultPriceOf(string memory _ticketType) external view returns(uint256){
+        return defaultPriceOfType[_ticketType];
+    }
+
     /**
     @dev Organizer can set maxTicketSupply;
      */
     function setMaxTicketSupply(uint _max) public onlyOrganizer {
+        require(_max >= tickets.length, "Max supply can't be lower than circulating supply");
         maxTicketSupply = _max;
     }
 
@@ -67,22 +84,53 @@ contract TicketFactory is Ownable {
         return tickets.length;
     }
 
+
+    /**
+    @dev returns available amount of ticket type
+     */
+    // function ticketTypeAvailability(string memory _ticketType) public view returns(uint amount){
+    //     return ticketTypeBalances[_ticketType][organizer];
+    // }
+
+        /**
+    @dev returns first available ticket of type
+     */
+    // function firstTicketIdOfType(string memory _ticketType) public view returns(uint amount){
+    //     return ownedTicketsIds[organizer][_ticketType][0];
+    // }
+
+    /**
+    @dev returns number of available tickets left
+    */
+    function ticketsLeft() external view returns(uint amount){
+        return (maxTicketSupply - tickets.length);
+    }
+
+
+
     /**
     @dev Only organizer can mint new tickets.
      */
-    function mint(string memory _ticketType, uint _amount, uint16 _price) public onlyOrganizer {
+    function mint(string memory _ticketType, uint _amount, address _to) internal {
         /*
         In solidity 0.5.0 you could use the return function from array.push()
         to get the ID. Since Solidity 0.6.0 the push() functions doesn't return
         the index anymore. 
         https://docs.soliditylang.org/en/develop/types.html?highlight=array%20push#array-members
         */
+        uint16 price = uint16(defaultPriceOfType[_ticketType]);
+        require(price > 0, "Price not set by organizer");
+        require(tickets.length + _amount < maxTicketSupply, "Buy order amount exceeds max supply");
         for(uint i=0; (i<_amount && tickets.length<maxTicketSupply); i++){
-            tickets.push(Ticket(_ticketType, _price, _price, _price));
-            uint id = tickets.length - 1;
-            ticketToOwner[id] = organizer;
-            // _safeMint(organizer, id); //ERC1155 allows to do this in bulk.
+            tickets.push(Ticket(_ticketType, price, price, price));
+
+            uint256 id = tickets.length - 1;
+            _safeMint(_to, id); //updates _owners and _balances
         }
+    }
+
+    function mintForFree(string memory _ticketType, uint _amount) external onlyOrganizer {
+        mint(_ticketType, _amount, organizer);
     }
 
 }
