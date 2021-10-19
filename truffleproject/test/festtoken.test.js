@@ -19,13 +19,12 @@ contract('FestToken', (accounts) => {
             assert.notEqual(address, '0x0');
             assert.notEqual(address, null);
             assert.notEqual(address, undefined);
-            console.log(address);
+            console.log("Ticket contract at " + address);
         })
         
         it("should have 0 as total supply", async () => {
             let totalSupply = await contract.totalSupply();
-            console.log(totalSupply);
-            assert(totalSupply.toNumber(), 0);
+            assert.equal(totalSupply.toNumber(), 0);
         })
     })
 
@@ -39,8 +38,7 @@ contract('FestToken', (accounts) => {
         })
         it('should have 10000 as total supply', async () => {
             let totalSupply = await contract.totalSupply();
-            console.log(totalSupply);
-            assert(totalSupply.toNumber(), 0);
+            assert.equal(totalSupply.toNumber(), 10000);
         })
     })
 
