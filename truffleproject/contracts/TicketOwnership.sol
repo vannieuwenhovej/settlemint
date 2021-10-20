@@ -50,7 +50,7 @@ contract TicketOwnership is TicketManager {
         require(FestToken(festTokenAddress).allowance(msg.sender, address(this)) 
         >= defaultPriceOfType[_ticketType], "TicketContract is not allowed to spend amount");
         
-        FestToken(festTokenAddress).transferFrom(msg.sender, organizer, defaultPriceOfType[_ticketType]);
+        FestToken(festTokenAddress).transferFrom(msg.sender, organizer, (defaultPriceOfType[_ticketType] * _amount));
         mint(_ticketType, _amount, msg.sender);
         // emit Transfer(organizer, msg.sender, _ticketId); //ERC721
     }
@@ -67,7 +67,11 @@ contract TicketOwnership is TicketManager {
         require(getApproved(_ticketId) == address(this), "contract can't receive ticket"); //ERC721
         address seller = ownerOf(_ticketId);
         this.transferFrom(seller, msg.sender, _ticketId); //ERC721
-        FestToken(festTokenAddress).transferFrom(msg.sender, seller, resalePriceOf(_ticketId));
+        FestToken(festTokenAddress).transferFrom(msg.sender, seller, tickets[_ticketId].currentPrice);
+        if(monetization>0){
+            FestToken(festTokenAddress).transferFrom(msg.sender, organizer, getFee(tickets[_ticketId].currentPrice));
+        }
+        tickets[_ticketId].lastSalePrice = tickets[_ticketId].currentPrice;
         
         // emit Transfer(seller, msg.sender, _ticketId); //ERC721
     }

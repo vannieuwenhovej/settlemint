@@ -128,22 +128,22 @@ contract('TicketOwnership', (accounts) => {
         before(async () => {
             token = await FestToken.deployed();
             console.log("Token contract at " + token.address);
-            await token.mintTo(organizer, 5000);
-            await token.transfer(alice, 1000, {from: organizer}); //4000
-            await token.transfer(bob, 5, {from: organizer}); //3995
+            await token.mintTo(organizer, 500000);
+            await token.transfer(alice, 100000, {from: organizer}); //4000
+            await token.transfer(bob, 500, {from: organizer}); //3995
             await contract.setFestTokenAddress(token.address);
 
             await contract.setOrganizer(organizer);
         })
         context('buying from organizer', async () => {
             it('Organiser sets default price', async() => {
-                await contract.setDefaultPriceFor("Normal", 10, {from: organizer});
+                await contract.setDefaultPriceFor("Normal", 1000, {from: organizer});
                 let price = await contract.defaultPriceOf("Normal");
-                assert.equal(price, 10);
+                assert.equal(price, 1000);
             })
             it('Alice has enough funds', async() => {
                 const balanceOfAlice = await token.balanceOf(alice);
-                assert.equal(balanceOfAlice.toNumber(), 1000);
+                assert.equal(balanceOfAlice.toNumber(), 100000);
             })
             it('Alice has not yet tickets', async() => {
                 const aliceTickets = await contract.balanceOf(alice);
@@ -159,8 +159,8 @@ contract('TicketOwnership', (accounts) => {
             it('Alice and organizers balance updated', async() => {
                 const balanceOfAlice = await token.balanceOf(alice);
                 const balanceOfOrganizer = await token.balanceOf(organizer);
-                assert.equal(balanceOfAlice.toNumber(), 990);
-                assert.equal(balanceOfOrganizer.toNumber(), 4005);
+                assert.equal(balanceOfAlice.toNumber(), 99000);
+                assert.equal(balanceOfOrganizer.toNumber(), 400500);
             })
             it('Alice has bought 1 ticket', async() => {
                 const aliceTickets = await contract.balanceOf(alice);
@@ -181,7 +181,7 @@ contract('TicketOwnership', (accounts) => {
             it('Bob has insufficient funds', async() => {
                 let price = await contract.defaultPriceOf("Normal");
                 const balanceOfBob = await token.balanceOf(bob);
-                assert.equal(balanceOfBob.toNumber(), 5);
+                assert.equal(balanceOfBob.toNumber(), 500);
                 assert.isTrue(balanceOfBob.toNumber() < price);
             })
             it('Bob cant buy ticket', async() => {
@@ -212,10 +212,10 @@ contract('TicketOwnership', (accounts) => {
             console.log("Token contract at " + token.address);
             await contract.setOrganizer(organizer);
             await token.mintTo(organizer, 5000);
-            await token.transfer(alice, 1000, {from: organizer}); //4000
-            await token.transfer(bob, 1000, {from: organizer}); //3995
+            await token.transfer(alice, 1000, {from: organizer});
+            await token.transfer(bob, 1000, {from: organizer});
             await contract.setFestTokenAddress(token.address);
-            await contract.setDefaultPriceFor("Normal", 20, {from: organizer});
+            await contract.setDefaultPriceFor("Normal", 200, {from: organizer});
         })
         context('buying from organizer', async () => {
             it('Alice bought ticket from organizer', async () => {
@@ -229,13 +229,35 @@ contract('TicketOwnership', (accounts) => {
                 
                 const aliceOwner = await contract.ownerOf(0);
                 assert.equal(aliceOwner, alice);
+                
+                const orgTokenBalance = await token.balanceOf(organizer);
+                assert.equal(orgTokenBalance, 3200);
+            })
+            it('Alice buys 2 more tickets from organizer', async () => {
+                let price = await contract.defaultPriceOf("Normal");
+                let amount = 2
+                await token.approve(contract.address, price*amount, {from: alice}) //approve contract to spend {price} 
+                const result = await contract.buyTicketFromOrganizer("Normal", amount, {from: alice}); //contract spends
+                assert(result.receipt.status, true);
+                
+                const aliceTickets = await contract.balanceOf(alice);
+                assert.equal(aliceTickets.toNumber(), 3);
+                
+                const aliceOwner = await contract.ownerOf(2);
+                assert.equal(aliceOwner, alice);
+
+                const orgTokenBalance = await token.balanceOf(organizer);
+                assert.equal(orgTokenBalance.toNumber(), 3600);
+
+                const aliTokenBalance = await token.balanceOf(alice);
+                assert.equal(aliTokenBalance.toNumber(), 400);
             })
             it('Organiser sets 2% monetization', async() => {
                 const result = await contract.setMonetization(2, {from: organizer});
                 assert.equal(result.receipt.status, true);
             })
             it('Alice sets ticket for resale', async() => {
-                const result = await contract.tryApproveTicketSellOrder(0, 22, {from: alice});
+                const result = await contract.tryApproveTicketSellOrder(0, 220, {from: alice});
                 const result2 = await contract.approve(contract.address, 0, {from: alice}); //approve contract to receive ticket
                 const result3 = await contract.getApproved(0, {from: alice});
                 assert.equal(result.receipt.status, true);
@@ -243,15 +265,23 @@ contract('TicketOwnership', (accounts) => {
                 assert.equal(result3, contract.address);
             })
             it('Bob buys Alices ticket from resale', async() => {
-                await token.approve(contract.address, 25, {from: bob}) //approve contract to spend {price} 
+                const price = await contract.resalePriceOf(0);
+                assert.equal(price, 224);
+                await token.approve(contract.address, price, {from: bob}) //approve contract to spend {price} 
                 const result = await contract.buyResaleTicket(0, {from: bob});
                 assert.equal(result.receipt.status, true);
             })
-            it('Alices and bobs balances are updated', async() => {
+            it('Alices, bobs and organizers balances are updated', async() => {
                 const bBalance = await contract.balanceOf(bob);
                 const aBalance = await contract.balanceOf(alice); 
+                const bTokens = await token.balanceOf(bob);
+                const aTokens = await token.balanceOf(alice); 
+                const oTokens = await token.balanceOf(organizer); 
                 assert.equal(bBalance, 1);
-                assert.equal(aBalance, 0);
+                assert.equal(aBalance, 2);
+                assert.equal(bTokens, 776); // - 224
+                assert.equal(aTokens, 620); // -3*200 + 220
+                assert.equal(oTokens, 3604); // + 220/100*2
             })
         })
     })
