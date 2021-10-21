@@ -25,4 +25,11 @@ contract FestToken is ERC20, Ownable{
         _mint(_address, _amount);
     }
 
+    /**
+    @dev check if sender is owner
+    */
+    function isOwner() external view returns(bool){
+        return(msg.sender == owner());
+    }
+
 }

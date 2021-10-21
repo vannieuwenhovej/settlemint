@@ -42,6 +42,20 @@ contract TicketOwnership is TicketManager {
     // }
 
     /**
+    @dev check if sender is owner
+    */
+    function isOwner() external view returns(bool){
+        return(msg.sender == owner());
+    }
+
+    /**
+    @dev check if sender is organiser
+    */
+    function isOrganizer() external view returns(bool){
+        return(msg.sender == organizer);
+    }
+
+    /**
     @dev buys ticket from organizer with custom FEST currency
      */
     function buyTicketFromOrganizer(string memory _ticketType, uint _amount) public {

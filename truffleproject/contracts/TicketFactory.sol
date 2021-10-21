@@ -129,6 +129,9 @@ contract TicketFactory is Ownable, ERC721 {
         }
     }
 
+    /**
+    @dev organizer can mint free tickets 
+    */
     function mintForFree(string memory _ticketType, uint _amount) external onlyOrganizer {
         mint(_ticketType, _amount, organizer);
     }
