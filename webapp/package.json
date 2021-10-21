@@ -1,0 +1,28 @@
+{
+  "name": "webapp",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tailwindcss build  src/styles.css -o public/styles.css",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vannieuwenhovej/settlemint.git"
+  },
+  "author": "Jonathan Van Nieuwenhove",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vannieuwenhovej/settlemint/issues"
+  },
+  "homepage": "https://github.com/vannieuwenhovej/settlemint#readme",
+  "devDependencies": {
+    "autoprefixer": "^10.3.7",
+    "postcss": "^8.3.9",
+    "tailwindcss": "^2.2.17"
+  },
+  "dependencies": {
+    "web3": "^1.6.0"
+  }
+}
