@@ -16,43 +16,57 @@ contract('TicketOwnership', (accounts) => {
         contract = await TicketOwnership.deployed();
     })
 
-    // describe('deployment', async() => { // container for following tests
-    //     it('deploys succesfully', async () => {
-    //         const address = contract.address;
-    //         assert.notEqual(address, '');
-    //         assert.notEqual(address, '0x0');
-    //         assert.notEqual(address, null);
-    //         assert.notEqual(address, undefined);
-    //         console.log(address);
-    //     })
+    describe('deployment', async() => { // container for following tests
+        it('deploys succesfully', async () => {
+            const address = contract.address;
+            assert.notEqual(address, '');
+            assert.notEqual(address, '0x0');
+            assert.notEqual(address, null);
+            assert.notEqual(address, undefined);
+            console.log(address);
+        })
 
-    //     it('has a name', async () => {
-    //         const name = await contract.name() //this should be returned by the inherited openzeppelin contract
-    //         assert.equal(name, 'Ticket');
-    //     })
+        it('has a name', async () => {
+            const name = await contract.name() //this should be returned by the inherited openzeppelin contract
+            assert.equal(name, 'Ticket');
+        })
 
-    //     it('has a symbol', async () => {
-    //         const symbol = await contract.symbol()
-    //         assert.equal(symbol, 'TICKET')
-    //     })
+        it('has a symbol', async () => {
+            const symbol = await contract.symbol()
+            assert.equal(symbol, 'TICKET')
+        })
         
-    //     it('owner is account which deployed contract', async () => {
-    //         const result = await contract.owner();
-    //         assert.equal(result, accounts[0]);
-    //     })
+        it('owner is account which deployed contract', async () => {
+            const result = await contract.owner();
+            assert.equal(result, accounts[0]);
+        })
 
  
 
-    // })
+    })
 
-    // describe('Owner', async () => {
-    //     it('only owner can set organizer', async () => {
-    //         const result = await contract.setOrganizer(organizer);
-    //         assert.equal(result.receipt.status, true);
-    //         await utils.shouldThrow(contract.setOrganizer(organizer, {from: alice}));
-    //         await utils.shouldThrow(contract.setOrganizer(organizer, {from: bob}));
-    //     })
-    // })
+    describe('Owner', async () => {
+        it('only owner can set organizer', async () => {
+            const result = await contract.setOrganizer(organizer);
+            assert.equal(result.receipt.status, true);
+            await utils.shouldThrow(contract.setOrganizer(organizer, {from: alice}));
+            await utils.shouldThrow(contract.setOrganizer(organizer, {from: bob}));
+        })
+        it('returns correct to isOwner()', async () => {
+            const result = await contract.isOwner({from: owner});
+            assert.isTrue(result);
+            const result2 = await contract.isOwner({from: alice});
+            assert.isFalse(result2);
+        })
+        it('returns correct to isOrganizer()', async () => {
+            const result = await contract.isOrganizer({from: organizer});
+            assert.isTrue(result);
+            const result2 = await contract.isOrganizer({from: alice});
+            assert.isFalse(result2);
+            const result3 = await contract.isOrganizer({from: owner});
+            assert.isFalse(result3);
+        })
+    })
 
     //ran before every function
     before(async () => {
@@ -209,6 +223,7 @@ contract('TicketOwnership', (accounts) => {
         let token;
         before(async () => {
             token = await FestToken.deployed();
+            console.log("Ticket contract at " + contract.address);
             console.log("Token contract at " + token.address);
             await contract.setOrganizer(organizer);
             await token.mintTo(organizer, 5000);
@@ -232,6 +247,9 @@ contract('TicketOwnership', (accounts) => {
                 
                 const orgTokenBalance = await token.balanceOf(organizer);
                 assert.equal(orgTokenBalance, 3200);
+
+                const aliTokenBalance = await token.balanceOf(alice);
+                assert.equal(aliTokenBalance, 800);
             })
             it('Alice buys 2 more tickets from organizer', async () => {
                 let price = await contract.defaultPriceOf("Normal");

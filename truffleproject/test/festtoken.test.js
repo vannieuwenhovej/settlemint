@@ -19,9 +19,13 @@ contract('FestToken', (accounts) => {
             assert.notEqual(address, '0x0');
             assert.notEqual(address, null);
             assert.notEqual(address, undefined);
-            console.log("Ticket contract at " + address);
         })
-        
+        it('returns correct to isOwner()', async () => {
+            const result3 = await contract.isOwner({from: owner});
+            assert.isTrue(result3);
+            const result4 = await contract.isOwner({from: alice});
+            assert.isFalse(result4);
+        })
         it("should have 0 as total supply", async () => {
             let totalSupply = await contract.totalSupply();
             assert.equal(totalSupply.toNumber(), 0);
