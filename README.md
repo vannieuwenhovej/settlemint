@@ -1,5 +1,11 @@
 # settlemint
 
+### NPM packages used:
+- truffle
+- truffle-hdwallet-provider (?)
+### IDE:
+- editor: VS Code with extension juanblanco.solidity
+
 
 # Assignment
 
