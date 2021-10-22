@@ -40,6 +40,16 @@ html {
 }
 
 /*
+Custom CSS
+==========
+@author Jonathan Van Nieuwenhove
+*/
+#notification{
+  visibility: hidden;
+}
+
+
+/*
 Sections
 ========
 */

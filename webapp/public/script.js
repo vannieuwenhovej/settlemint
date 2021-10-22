@@ -4,8 +4,8 @@ const web3 = new Web3(rpcURL);
 
 var userAccount;
 
-var TOKEN_ADDRESS = "0xD225EcAc2b98C709d34279E72A44Ca57DBf605fd";
-var TICKET_ADDRESS = "0xeEb90E448cf679D62Fc58EFa09174D1c2aCd0905";
+var TOKEN_ADDRESS = "0x45134D1a3da15a4f1F71e96a1ad2c9b3beE0Ac6c";
+var TICKET_ADDRESS = "0x4F747b75d46D0BE502B76254CE8c091CA25e79AF";
 
 document.addEventListener("DOMContentLoaded", async function(event) {
         //Log in user if user clicks connect
@@ -26,6 +26,11 @@ async function logIn(){
         web3js = new Web3(web3.currentProvider);
         await setAccount();
         console.log("Connected account: " + userAccount);
+        // detect Metamask account change
+        window.ethereum.on('accountsChanged', function (accounts) {
+            userAccount = accounts[0].toLowerCase();
+            loadUserData();
+        });
     } else {
         //MetaMask not installed
         if(confirm("Please install MetaMask to use app: https://metamask.io/download")){
@@ -35,10 +40,14 @@ async function logIn(){
     }
 }
 
+
+
 async function setAccount(){
     const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
     userAccount = accounts[0].toLowerCase();
-}
+    
+    setNotification("info", "", "Connected to " + userAccount);
+}   
 
 
 async function initalizeWeb3(){
@@ -74,7 +83,6 @@ function loadApp(){
     loadUserData();
     document.querySelector("#btnBuyTicket").addEventListener('click', buyTicket);
     console.log("ready to start app");
-    // mint();
 }
 
 
@@ -143,19 +151,65 @@ function injectTicketOption(type, price){
     option.value = type;
     //if price is 0, type is unavailable.
     if(price > 0){
-        option.innerHTML = type + " (" + price + " FEST)";
+        option.innerHTML = `${type} (${price} FEST)`;
         option.disabled = false;
     } else{
-        option.innerHTML = type + " Unavailable";
+        option.innerHTML = `${type} Unavailable`;
         option.disabled = true;
     }
     select.appendChild(option);
 }
 
+/**
+ * @dev display a notification
+ * @param {"info", "success", "error"} type 
+ */
+function setNotification(type, title, message){
+    let notif = document.querySelector('#notification');
+    notif.innerHTML = "";
+    let div = document.createElement('div');
+    let strong = document.createElement('strong');
+    let span = document.createElement('span');
+    let color;
+    switch(type){
+        case "info":
+            color = "blue"
+            break;
+        case "success":
+            color = "green";
+            break;
+        case "error":
+            color = "red";
+            break;
+    }
+    
+    span.className = "block sm:inline ml-2"
+    strong.className = "font-bold";
+    div.className = "border px-4 py-3 rounded relative";
+    div.classList.add(`bg-${color}-100`);
+    div.classList.add(`border-${color}-400`);
+    div.classList.add(`text-${color}-700`);
+
+    div.role = "alert";
+    strong.innerText = title;
+    span.innerText = message;
+    div.appendChild(strong);
+    div.appendChild(span);
+    notif.appendChild(div);
+    notif.style.visibility = "visible";
+    //errors should not dissapear
+    if(type !== "error"){
+        setTimeout(
+          function() {
+            div.style.visibility='hidden';
+          }, 5000);
+    }
+}
 
 /**************************************
- * Async call function to contracts:
- */
+ * Call function to contracts:
+ **************************************/
+
 function ownerOfContract(contract){
     return contract.methods.isOwner().call();
 }
@@ -190,17 +244,21 @@ function maxTicketSupply(){
 async function buyTicketViaContract(type, amount){
     defaultPriceOf(type).then(function (price) {
         approveContractToSpend(price*amount).then(function (approved){
-            if(approved){
-                console.log("letsog");
+            console.log("letsog");
+            if(approved.status == true){
                 ticketContract.methods.buyTicketFromOrganizer(type, amount).send({from: userAccount, gas:300000}).then(function (res){
-                    console.log("succesfully bought " + amount + " " + type + " tickets.");
+                    setNotification("success", "Succesfully", `bought ${amount} ${type} tickets.`);
+                    console.log(`succesfully bought ${amount} ${type} tickets.`);
                     loadUserData();
                 }).catch(function (err) {
+                    setNotification("error", `Failed buying ${amount} ${type} ticket:`, err);
                     console.log(err);
                     return err;
                 })
             } else{
-                console.log("failed buying " + amount + " " + type + " tickets.");
+                setNotification("error", `Failed approving spending:`, approved);
+                console.log(approved);
+                console.log(`failed buying ${amount} ${type} tickets.`);
                 return;
             }
         })
@@ -209,8 +267,10 @@ async function buyTicketViaContract(type, amount){
 
 function approveContractToSpend(amount){
     console.log(userAccount);
-    return tokenContract.methods.approve(TICKET_ADDRESS, amount).send({from: userAccount}).on('receipt', function(receipt){
-        return receipt;
+    return tokenContract.methods.approve(TICKET_ADDRESS, amount).send({from: userAccount, gas:300000}).on('receipt', function(receipt){
+        return receipt.status;
+    }).catch(function (err){
+        return err;
     });
 }
 
@@ -221,6 +281,7 @@ function mint(){
         })
         return res;
     }).catch(function(err) {
+        setNotification("error", "Could not mint", err);
         console.log(err);
         return err;
     });
