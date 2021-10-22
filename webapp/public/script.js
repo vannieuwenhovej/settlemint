@@ -11,33 +11,17 @@ document.addEventListener("DOMContentLoaded", async function(event) {
         //Log in user if user clicks connect
         document.querySelector("#connectMetaMask").addEventListener('click', logIn);
 
+        //access web3:
+        initalizeWeb3()
         await logIn();
           
-        // Now you can start your app & access web3 freely:
-        initalizeWeb3()
 });
 
 
 async function logIn(){
-    // Checking if Web3 has been injected by the browser (Mist/MetaMask)
-    if (typeof window.ethereum !== 'undefined') {
-        //MetaMask is installed
-        ethereum.request({ method: 'eth_requestAccounts' });
-        web3js = new Web3(web3.currentProvider);
-        await setAccount();
-        console.log("Connected account: " + userAccount);
-        // detect Metamask account change
-        window.ethereum.on('accountsChanged', function (accounts) {
-            userAccount = accounts[0].toLowerCase();
-            loadUserData();
-        });
-    } else {
-        //MetaMask not installed
-        if(confirm("Please install MetaMask to use app: https://metamask.io/download")){
-            window.open("https://metamask.io/download");
-        }
-        console.log("Please install MetaMask to connect and use app: https://metamask.io/download");
-    }
+    await setAccount().then(function (res){
+        loadUserData();
+    })
 }
 
 
@@ -51,23 +35,30 @@ async function setAccount(){
 
 
 async function initalizeWeb3(){
-    var usersTicketAmount;
-    var usersTokenBalance;
+    // Checking if Web3 has been injected by the browser (Mist/MetaMask)
+    if (typeof window.ethereum !== 'undefined') {
+        //MetaMask is installed
+        web3js = new Web3(web3.currentProvider);
+        await setAccount();
+        //detect Metamask account change
+        window.ethereum.on('accountsChanged', async function (accounts) {
+            //account changed: set new account then load user data
+            await logIn();
+        });
+    } else {
+        //MetaMask not installed
+        if(confirm("Please install MetaMask to use app: https://metamask.io/download")){
+            window.open("https://metamask.io/download");
+        }
+        console.log("Please install MetaMask to connect and use app: https://metamask.io/download");
+    }
 
     tokenContract = new web3js.eth.Contract(FestTokenABI, TOKEN_ADDRESS);
     ticketContract = new web3js.eth.Contract(TicketOwnershipABI, TICKET_ADDRESS);
 
     console.log(FestTokenABI);
     console.log(TicketOwnershipABI);
-
-    // ownerOfContract(tokenContract).then(function (res){
-    //     console.log(res);
-    // })
-
-    // ownerOfContract(ticketContract).then(function (res){
-    //     console.log(res);
-    // })
-
+    
     loadApp();
 
     owner(ticketContract).then(function (res) {
@@ -75,12 +66,13 @@ async function initalizeWeb3(){
     })
     owner(tokenContract).then(function (res) {
         console.log("owner token contract: " + res);
-        console.log("and me: " + userAccount);
+        console.log("and you are: " + userAccount);
     })
 }
 
+
 function loadApp(){
-    loadUserData();
+    loadAppData();
     document.querySelector("#btnBuyTicket").addEventListener('click', buyTicket);
     console.log("ready to start app");
 }
@@ -102,16 +94,26 @@ function loadUserData(){
     getTokenBalance().then(function (res) {
         document.querySelector("span#tokenAmount").innerHTML = res;
     })
+    setTicketsOwned();
+}
+
+/**
+ * @dev load all general app data from blockchain
+ */
+function loadAppData(){
+    setTicketOptions();
     ticketsLeft().then(function (res) {
         document.querySelector("span#ticketsLeft").innerHTML = res;
     })
     maxTicketSupply().then(function (res) {
         document.querySelector("span#ticketMaxSupply").innerHTML = res;
     })
-    setTicketsOwned();
-    setTicketOptions();
 }
 
+function loadData(){
+    loadAppData();
+    loadUserData();
+}
 /**
  * @dev load amount of tickets user owns
  */
@@ -127,7 +129,7 @@ function setTicketsOwned(){
 }
 
 /**
- * @dev set option for type and price
+ * @dev set options for ticket types and prices
  */
 function setTicketOptions(){
     document.querySelector('select#ticketTypes').innerHTML = '';
@@ -183,6 +185,7 @@ function setNotification(type, title, message){
             break;
     }
     
+    //classes compliant with tailwindcss v2.2.17
     span.className = "block sm:inline ml-2"
     strong.className = "font-bold";
     div.className = "border px-4 py-3 rounded relative";
@@ -197,6 +200,7 @@ function setNotification(type, title, message){
     div.appendChild(span);
     notif.appendChild(div);
     notif.style.visibility = "visible";
+
     //errors should not dissapear
     if(type !== "error"){
         setTimeout(
@@ -207,7 +211,7 @@ function setNotification(type, title, message){
 }
 
 /**************************************
- * Call function to contracts:
+ * Call functions to contracts:
  **************************************/
 
 function ownerOfContract(contract){
@@ -239,7 +243,7 @@ function maxTicketSupply(){
 }
 
 /**
- * @dev Gets price, approves contract to spend and buys ticket(s) if approved
+ * @dev Gets price, approves contract to spend amount, and buys ticket(s) if approved
  */
 async function buyTicketViaContract(type, amount){
     defaultPriceOf(type).then(function (price) {
@@ -249,7 +253,7 @@ async function buyTicketViaContract(type, amount){
                 ticketContract.methods.buyTicketFromOrganizer(type, amount).send({from: userAccount, gas:300000}).then(function (res){
                     setNotification("success", "Succesfully", `bought ${amount} ${type} tickets.`);
                     console.log(`succesfully bought ${amount} ${type} tickets.`);
-                    loadUserData();
+                    loadData();
                 }).catch(function (err) {
                     setNotification("error", `Failed buying ${amount} ${type} ticket:`, err);
                     console.log(err);
