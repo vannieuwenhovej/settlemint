@@ -4,48 +4,80 @@ const web3 = new Web3(rpcURL);
 
 var userAccount;
 
-var TOKEN_ADDRESS = "0x45134D1a3da15a4f1F71e96a1ad2c9b3beE0Ac6c";
-var TICKET_ADDRESS = "0x4F747b75d46D0BE502B76254CE8c091CA25e79AF";
+var TOKEN_ADDRESS = "0x7c59c93722A9f613a69ABaEe04af3f4ACA03AA26";
+var TICKET_ADDRESS = "0x0557489A7d41403DD211F7c26ef331bd5ec42Eb2";
 
 document.addEventListener("DOMContentLoaded", async function(event) {
         //Log in user if user clicks connect
-        document.querySelector("#connectMetaMask").addEventListener('click', logIn);
+        // document.querySelector("#connectMetaMask").addEventListener('click', setAccount);
 
         //access web3:
         initalizeWeb3()
-        await logIn();
+        // await logIn();
           
 });
 
-
-async function logIn(){
-    await setAccount().then(function (res){
-        loadUserData();
-    })
+function logIn(){
+    loadUserData();
 }
 
-
-
 async function setAccount(){
-    const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-    userAccount = accounts[0].toLowerCase();
-    
-    setNotification("info", "", "Connected to " + userAccount);
+        try{
+            //get connected account
+            const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+            userAccount = accounts[0].toLowerCase();
+            setNotification("info", "", "Connected to " + userAccount);
+            logIn();
+        } catch (error){
+            setNotification("loading", "Please", "Connect with a valid account.");
+            console.log(userAccount);
+        }    
 }   
 
+function metaMaskInstalled(){
+    return typeof window.ethereum !== 'undefined';
+}
 
 async function initalizeWeb3(){
     // Checking if Web3 has been injected by the browser (Mist/MetaMask)
-    if (typeof window.ethereum !== 'undefined') {
+    if (metaMaskInstalled()) {
         //MetaMask is installed
         web3js = new Web3(web3.currentProvider);
-        await setAccount();
         //detect Metamask account change
         window.ethereum.on('accountsChanged', async function (accounts) {
             //account changed: set new account then load user data
-            await logIn();
+            await setAccount();
         });
+        
+        //Initialize contract connection
+        tokenContract = new web3js.eth.Contract(FestTokenABI, TOKEN_ADDRESS);
+        ticketContract = new web3js.eth.Contract(TicketOwnershipABI, TICKET_ADDRESS);
+    
+        console.log(FestTokenABI);
+        console.log(TicketOwnershipABI);
+        
+
+        if(userAccount === undefined){
+            setNotification("loading", "", "Connect with an account")
+            await setAccount();
+        }
+
+        if(userAccount !== undefined){
+        
+            owner(ticketContract).then(function (res) {
+                console.log("owner ticket contract: " + res);
+            })
+            owner(tokenContract).then(function (res) {
+                console.log("owner token contract: " + res);
+                console.log("and you are: " + userAccount);
+            })
+            
+        //load App
+        loadApp();
+        }
+       
     } else {
+        setNotification("loading", "No MetaMask", "Please install MetaMask.");
         //MetaMask not installed
         if(confirm("Please install MetaMask to use app: https://metamask.io/download")){
             window.open("https://metamask.io/download");
@@ -53,21 +85,7 @@ async function initalizeWeb3(){
         console.log("Please install MetaMask to connect and use app: https://metamask.io/download");
     }
 
-    tokenContract = new web3js.eth.Contract(FestTokenABI, TOKEN_ADDRESS);
-    ticketContract = new web3js.eth.Contract(TicketOwnershipABI, TICKET_ADDRESS);
 
-    console.log(FestTokenABI);
-    console.log(TicketOwnershipABI);
-    
-    loadApp();
-
-    owner(ticketContract).then(function (res) {
-        console.log("owner ticket contract: " + res);
-    })
-    owner(tokenContract).then(function (res) {
-        console.log("owner token contract: " + res);
-        console.log("and you are: " + userAccount);
-    })
 }
 
 
@@ -164,16 +182,17 @@ function injectTicketOption(type, price){
 
 /**
  * @dev display a notification
- * @param {"info", "success", "error"} type 
+ * @param {"info", "success", "error", "loading"} type 
  */
 function setNotification(type, title, message){
     let notif = document.querySelector('#notification');
-    notif.innerHTML = "";
+    clearNotification();
     let div = document.createElement('div');
     let strong = document.createElement('strong');
     let span = document.createElement('span');
     let color;
     switch(type){
+        case "loading":
         case "info":
             color = "blue"
             break;
@@ -201,13 +220,18 @@ function setNotification(type, title, message){
     notif.appendChild(div);
     notif.style.visibility = "visible";
 
-    //errors should not dissapear
-    if(type !== "error"){
+    //errors and loading messages should not dissapear
+    if(type !== "error" && type !== "loading"){
         setTimeout(
           function() {
             div.style.visibility='hidden';
-          }, 5000);
+          }, 10000);
     }
+}
+
+function clearNotification(){
+    let notif = document.querySelector('#notification');
+    notif.innerHTML = "";
 }
 
 /**************************************
