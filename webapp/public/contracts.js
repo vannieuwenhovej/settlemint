@@ -31,6 +31,10 @@ function maxTicketSupply(){
     return ticketContract.methods.maxTicketSupply().call();
 }
 
+function resalePriceOf(_id){
+    return ticketContract.methods.resalePriceOf(_id).call();
+}
+
 /**
  * @dev Gets price, approves contract to spend amount, and buys ticket(s) if approved
  */
