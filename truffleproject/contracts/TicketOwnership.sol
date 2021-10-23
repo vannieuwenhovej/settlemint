@@ -63,7 +63,8 @@ contract TicketOwnership is TicketManager {
         require(getApproved(_ticketId) == address(this), "contract can't receive ticket"); //ERC721
 
         address seller = ownerOf(_ticketId);
-        this.transferFrom(seller, msg.sender, _ticketId); //ERC721
+        this.transferFrom(seller, msg.sender, _ticketId); //ERC721, transfer ticket
+        delete approvedTicketsForResale[_ticketId]; //delete entry from approved resales
         FestToken(festTokenAddress).transferFrom(msg.sender, seller, tickets[_ticketId].currentPrice);
         if(monetization>0){
             FestToken(festTokenAddress).transferFrom(msg.sender, organizer, getFee(tickets[_ticketId].currentPrice));
