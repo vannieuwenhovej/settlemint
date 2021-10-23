@@ -135,15 +135,16 @@ function loadData(){
     loadAppData();
     loadUserData();
 }
+
 /**
  * @dev load amount of tickets user owns
  */
 function setTicketsOwned(){
     getTicketAmount().then(function (res) {
         if (res == 1){
-            res = res + " ticket";
+            res = `${res} ticket`;
         } else{
-            res = res + " tickets";
+            res = `${res} tickets`;
         }
         document.querySelector("span#ticketAmount").innerHTML = res;
     })
@@ -185,9 +186,10 @@ function injectTicketOption(type, price){
 
 /**
  * @dev display a notification
- * @param {"info", "success", "error", "loading"} type 
+ * @param {"info", "success", "error", "loading"} type
+ * @param time not set for error & loading messages by default
  */
-function setNotification(type, title, message){
+function setNotification(type, title, message, time = 7000){
     let notif = document.querySelector('#notification');
     clearNotification();
     let div = document.createElement('div');
@@ -215,7 +217,7 @@ function setNotification(type, title, message){
     div.classList.add(`border-${color}-400`);
     div.classList.add(`text-${color}-700`);
 
-    div.role = "alert";
+    div.setAttribute("role", "alert");
     strong.innerText = title;
     span.innerText = message;
     div.appendChild(strong);
@@ -223,12 +225,12 @@ function setNotification(type, title, message){
     notif.appendChild(div);
     notif.style.visibility = "visible";
 
-    //errors and loading messages should not dissapear
-    if(type !== "error" && type !== "loading"){
+    //errors and loading messages should not dissapear unless time is specified
+    if((type !== "error" && type !== "loading") || time !== 7000){
         setTimeout(
           function() {
             div.style.visibility='hidden';
-          }, 10000);
+          }, time);
     }
 }
 
