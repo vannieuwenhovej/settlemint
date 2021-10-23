@@ -23,24 +23,6 @@ contract TicketOwnership is TicketManager {
         festTokenAddress = _address;
     }
 
-    event funcCalled(uint256 val);
-
-    /**
-    @dev Buys ticket from seller.
-    */
-    // function buyTicket(uint _ticketId) public {
-    //     emit funcCalled(1);
-    //     address ticketOwner = ticketToOwner[_ticketId];
-    //     require(festTokenAddress != address(0), "ERC20 Currency address not set");
-    //     require(ticketOwner != address(0), "Ticket expired or deleted");
-    //     require(ticketOwner != msg.sender, "Cannot buy own tickets");
-    //     if(ticketOwner == organizer){
-    //         buyTicketFromOrganizer(_ticketId);
-    //     } else {
-    //         buyResaleTicket(_ticketId);
-    //     }
-    // }
-
     /**
     @dev check if sender is owner
     */
@@ -79,6 +61,7 @@ contract TicketOwnership is TicketManager {
         require(FestToken(festTokenAddress).allowance(msg.sender, address(this))
         >= resalePriceOf(_ticketId), "TicketContract is not allowed to spend amount");
         require(getApproved(_ticketId) == address(this), "contract can't receive ticket"); //ERC721
+
         address seller = ownerOf(_ticketId);
         this.transferFrom(seller, msg.sender, _ticketId); //ERC721
         FestToken(festTokenAddress).transferFrom(msg.sender, seller, tickets[_ticketId].currentPrice);
@@ -90,18 +73,6 @@ contract TicketOwnership is TicketManager {
         // emit Transfer(seller, msg.sender, _ticketId); //ERC721
     }
 
-    /**
-    @dev changes a ticket to different owner
-     */
-    // function changeTicketOwner(uint _ticketId, address _to) internal {
-    //     //decrease tickettype balance of current owner
-    //     ticketTypeBalances[tickets[_ticketId].ticketType][ticketToOwner[_ticketId]]--;
-    //     //and increase tickettype balance of recepient
-    //     ticketTypeBalances[tickets[_ticketId].ticketType][_to]++;
-    //     //change owner
-    //     ticketToOwner[_ticketId] = _to;
-
-    // }
 
     /**
     @dev approves a ticket for resale.
@@ -122,9 +93,5 @@ contract TicketOwnership is TicketManager {
         approveTicketResale(_ticketId);
         return true;
     }
-
-    
-
-
 
 }

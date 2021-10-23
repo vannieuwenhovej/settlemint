@@ -84,21 +84,6 @@ contract TicketFactory is Ownable, ERC721 {
         return tickets.length;
     }
 
-
-    /**
-    @dev returns available amount of ticket type
-     */
-    // function ticketTypeAvailability(string memory _ticketType) public view returns(uint amount){
-    //     return ticketTypeBalances[_ticketType][organizer];
-    // }
-
-        /**
-    @dev returns first available ticket of type
-     */
-    // function firstTicketIdOfType(string memory _ticketType) public view returns(uint amount){
-    //     return ownedTicketsIds[organizer][_ticketType][0];
-    // }
-
     /**
     @dev returns number of available tickets left
     */
