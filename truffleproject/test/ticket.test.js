@@ -275,7 +275,11 @@ contract('TicketOwnership', (accounts) => {
                 assert.equal(result.receipt.status, true);
             })
             it('Alice sets ticket for resale', async() => {
+                const a = await contract.isTicketOnResale(0);
+                assert.equal(a, false);
                 const result = await contract.tryApproveTicketSellOrder(0, 220, {from: alice});
+                const b = await contract.isTicketOnResale(0);
+                assert.equal(b, true);
                 const result2 = await contract.approve(contract.address, 0, {from: alice}); //approve contract to receive ticket
                 const result3 = await contract.getApproved(0, {from: alice});
                 assert.equal(result.receipt.status, true);

@@ -95,4 +95,11 @@ contract TicketOwnership is TicketManager {
         return true;
     }
 
+
+    /**
+    @dev checks if ticket is on resale
+     */
+    function isTicketOnResale(uint _ticketId) external view returns(bool) {
+        return (approvedTicketsForResale[_ticketId] != address(0));
+    }
 }
