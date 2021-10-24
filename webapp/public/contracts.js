@@ -35,6 +35,26 @@ function resalePriceOf(_id){
     return ticketContract.methods.resalePriceOf(_id).call();
 }
 
+function ownerOf(_id){
+    return ticketContract.methods.ownerOf(_id).call();
+}
+
+function tryApproveTicketSellOrder(_id, _price){
+    return ticketContract.methods.tryApproveTicketSellOrder(_id, _price).send({from: userAccount, gas: 300000}).then(function (res){
+        return res;
+    })
+}
+
+function isTicketOnResale(_id){
+    return ticketContract.methods.isTicketOnResale(_id).call();
+}
+
+function approve(_id){
+    return ticketContract.methods.approve(TICKET_ADDRESS, _id).send({from:userAccount, gas: 300000}).then( function (res){
+        return res;
+    })
+}
+
 /**
  * @dev Gets price, approves contract to spend amount, and buys ticket(s) if approved
  */
@@ -44,8 +64,8 @@ async function buyTicketViaContract(type, amount){
             console.log("letsog");
             if(approved.status == true){
                 ticketContract.methods.buyTicketFromOrganizer(type, amount).send({from: userAccount, gas:300000}).then(function (res){
-                    setNotification("success", "Succesfully", `bought ${amount} ${type} tickets.`);
-                    console.log(`succesfully bought ${amount} ${type} tickets.`);
+                    setNotification("success", "Succesfully", `bought ${amount} ${type} ticket.`, 10000);
+                    console.log(`succesfully bought ${amount} ${type} ticket.`);
                     loadData();
                 }).catch(function (err) {
                     setNotification("error", `Failed buying ${amount} ${type} ticket:`, err);
@@ -82,4 +102,13 @@ function mint(){
         console.log(err);
         return err;
     });
+}
+
+function buyResaleTicket(_id){
+    return ticketContract.methods.buyResaleTicket(_id).send({from: userAccount, gas:300000}).on('receipt', function (receipt){
+        return receipt;
+    }).catch(function (err){
+        setNotification("error", "Could not buy ticket", err);
+        return err;
+    })
 }
