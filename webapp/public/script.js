@@ -4,8 +4,8 @@ const web3 = new Web3(rpcURL);
 
 var userAccount;
 
-var TOKEN_ADDRESS = "0x7c59c93722A9f613a69ABaEe04af3f4ACA03AA26";
-var TICKET_ADDRESS = "0x0557489A7d41403DD211F7c26ef331bd5ec42Eb2";
+var TOKEN_ADDRESS = "0x92f7fC35C35bD56b44052aD8Af7BDdA9989B9C00";
+var TICKET_ADDRESS = "0x125F8B3aC82839AFe6c73E73F0c1434B75E4c36E";
 
 document.addEventListener("DOMContentLoaded", async function(event) {
         //Log in user if user clicks connect
@@ -31,7 +31,8 @@ async function setAccount(){
         } catch (error){
             setNotification("loading", "Please", "Connect with a valid account.");
             console.log(userAccount);
-        }    
+        }
+        clearAllInput();   
 }   
 
 function metaMaskInstalled(){
@@ -93,7 +94,7 @@ function loadApp(){
     loadAppData();
     document.querySelector("#btnBuyTicket").addEventListener('click', buyTicket);
     document.querySelector("#btnSellResaleTicket").addEventListener('click', sellResaleTicket);
-    document.querySelector("#btnBuyResaleTicket").addEventListener('click', buyResaleTicket);
+    document.querySelector("#btnBuyResaleTicket").addEventListener('click', tryToBuyResaleTicket);
    
     console.log("ready to start app");
 }
