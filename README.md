@@ -35,6 +35,7 @@ Now Ganache CLI is running on 127.0.0.1:8545 and uses 10 accounts on the network
 You should be seeing:
 `Listening on 127.0.0.1:8545`
 Let this terminal window run in the background.
+
 ### 1.3 Migrating contracts and Initializing front end 
 - We're going to use Truffle to deploy the contracts and set up the one-time initalisation.
 - Enter a new terminal window and type:
@@ -46,6 +47,7 @@ This should result in the total deployment of `3` contratcs and an estimated fin
 -- At to top of `script.js` there is a variable called `TICKET_ADDRESS`, set the address you just copied as the 			  value of this variable. 
 - We need to do the same for FestToken. Copy the address of the FestToken contract in the output of `truffle migrate` and set as the value of `TOKEN_ADDRESS` at the top of the `script.js` file.
 - Now we can close the .js editor but not yet the terminal.
+- 
 ### 1.4 (Optional) Running the tests
 - There are tests in this project. Check if they succeed with running the following command:
 `PS C:\settlemint-demo\settlemint\truffleproject> .\node_modules\.bin\truffle test`
