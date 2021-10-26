@@ -19,6 +19,10 @@
   "homepage": "https://github.com/vannieuwenhovej/settlemint#readme",
   "devDependencies": {
     "autoprefixer": "^10.3.7",
+    "browserify": "^17.0.0",
+    "buffer": "^6.0.3",
+    "ethereumjs-tx": "^2.1.2",
+    "fs": "0.0.1-security",
     "postcss": "^8.3.9",
     "tailwindcss": "^2.2.17"
   },

@@ -4,29 +4,89 @@ const web3 = new Web3(rpcURL);
 
 var userAccount;
 
-var TOKEN_ADDRESS = "0xD225EcAc2b98C709d34279E72A44Ca57DBf605fd";
-var TICKET_ADDRESS = "0xeEb90E448cf679D62Fc58EFa09174D1c2aCd0905";
+var TOKEN_ADDRESS = "0x72f62bF33A5F9bB5839beDB7293E263b44Af1F9E";
+var TICKET_ADDRESS = "0x2dC2c0492778E073Cb99BaE1AAE140f6DF5bc99a";
 
 document.addEventListener("DOMContentLoaded", async function(event) {
         //Log in user if user clicks connect
-        document.querySelector("#connectMetaMask").addEventListener('click', logIn);
+        // document.querySelector("#connectMetaMask").addEventListener('click', setAccount);
 
-        await logIn();
-          
-        // Now you can start your app & access web3 freely:
+        //access web3:
         initalizeWeb3()
+        // await logIn();
+          
 });
 
+function logIn(){
+    loadUserData();
+}
 
-async function logIn(){
+async function setAccount(){
+        try{
+            //get connected account
+            const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+            userAccount = accounts[0].toLowerCase();
+            setNotification("info", "", "Connected to " + userAccount);
+            logIn();
+        } catch (error){
+            setNotification("loading", "Please", "Connect with a valid account.");
+            console.log(userAccount);
+        }
+        clearAllInput();   
+}   
+
+function metaMaskInstalled(){
+    return typeof window.ethereum !== 'undefined';
+}
+
+async function initalizeWeb3(){
     // Checking if Web3 has been injected by the browser (Mist/MetaMask)
-    if (typeof window.ethereum !== 'undefined') {
+    if (metaMaskInstalled()) {
         //MetaMask is installed
-        ethereum.request({ method: 'eth_requestAccounts' });
         web3js = new Web3(web3.currentProvider);
-        await setAccount();
-        console.log("Connected account: " + userAccount);
+        //if client is still connected to RPC URL
+        web3js.eth.net.isListening().then((s) => {
+            //detect Metamask account change
+            window.ethereum.on('accountsChanged', async function (accounts) {
+                //account changed: set new account then load user data
+                await setAccount();
+            });
+            
+            //Initialize contract connection
+            tokenContract = new web3js.eth.Contract(FestTokenABI, TOKEN_ADDRESS);
+            ticketContract = new web3js.eth.Contract(TicketOwnershipABI, TICKET_ADDRESS);
+            console.log(tokenContract);
+            console.log(ticketContract);
+            console.log(FestTokenABI);
+            console.log(TicketOwnershipABI);
+            
+    
+            if(userAccount === undefined){
+                setNotification("loading", "", "Connect with an account")
+                setAccount();
+            }
+    
+            if(userAccount !== undefined){
+                owner(ticketContract).then(function (res) {
+                    console.log("owner ticket contract: " + res);
+                })
+                owner(tokenContract).then(function (res) {
+                    console.log("owner token contract: " + res);
+                    console.log("and you are: " + userAccount);
+                })
+            }
+            //load App
+            loadApp();
+            
+            //client lost connection or unable to connect to node
+        }).catch((e) => {
+            setNotification('error', 'Unable to connect', 'to node or maintain connectivity');
+            console.log('Lost connection to the node, reconnecting');
+        })
+        
+    //User has no MetaMask
     } else {
+        setNotification("loading", "No MetaMask", "Please install MetaMask.");
         //MetaMask not installed
         if(confirm("Please install MetaMask to use app: https://metamask.io/download")){
             window.open("https://metamask.io/download");
@@ -35,46 +95,15 @@ async function logIn(){
     }
 }
 
-async function setAccount(){
-    const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-    userAccount = accounts[0].toLowerCase();
-}
-
-
-async function initalizeWeb3(){
-    var usersTicketAmount;
-    var usersTokenBalance;
-
-    tokenContract = new web3js.eth.Contract(FestTokenABI, TOKEN_ADDRESS);
-    ticketContract = new web3js.eth.Contract(TicketOwnershipABI, TICKET_ADDRESS);
-
-    console.log(FestTokenABI);
-    console.log(TicketOwnershipABI);
-
-    // ownerOfContract(tokenContract).then(function (res){
-    //     console.log(res);
-    // })
-
-    // ownerOfContract(ticketContract).then(function (res){
-    //     console.log(res);
-    // })
-
-    loadApp();
-
-    owner(ticketContract).then(function (res) {
-        console.log("owner ticket contract: " + res);
-    })
-    owner(tokenContract).then(function (res) {
-        console.log("owner token contract: " + res);
-        console.log("and me: " + userAccount);
-    })
-}
 
 function loadApp(){
-    loadUserData();
+    
+    loadAppData();
     document.querySelector("#btnBuyTicket").addEventListener('click', buyTicket);
+    document.querySelector("#btnSellResaleTicket").addEventListener('click', sellResaleTicket);
+    document.querySelector("#btnBuyResaleTicket").addEventListener('click', tryToBuyResaleTicket);
+   
     console.log("ready to start app");
-    // mint();
 }
 
 
@@ -91,17 +120,32 @@ function buyTicket(){
  * @dev load all user data from blockchain
  */
 function loadUserData(){
-    getTokenBalance().then(function (res) {
+    try{
+        getTokenBalance().then(function (res) {
         document.querySelector("span#tokenAmount").innerHTML = res;
+        setTicketsOwned();
     })
+    } catch(error){
+        setNotification('error', 'Failed', 'retrieving user data from contract')
+    }
+}
+
+/**
+ * @dev load all general app data from blockchain
+ */
+function loadAppData(){
+    setTicketOptions();
     ticketsLeft().then(function (res) {
         document.querySelector("span#ticketsLeft").innerHTML = res;
     })
     maxTicketSupply().then(function (res) {
         document.querySelector("span#ticketMaxSupply").innerHTML = res;
     })
-    setTicketsOwned();
-    setTicketOptions();
+}
+
+function loadData(){
+    loadAppData();
+    loadUserData();
 }
 
 /**
@@ -110,16 +154,16 @@ function loadUserData(){
 function setTicketsOwned(){
     getTicketAmount().then(function (res) {
         if (res == 1){
-            res = res + " ticket";
+            res = `${res} ticket`;
         } else{
-            res = res + " tickets";
+            res = `${res} tickets`;
         }
         document.querySelector("span#ticketAmount").innerHTML = res;
     })
 }
 
 /**
- * @dev set option for type and price
+ * @dev set options for ticket types and prices
  */
 function setTicketOptions(){
     document.querySelector('select#ticketTypes').innerHTML = '';
@@ -143,85 +187,66 @@ function injectTicketOption(type, price){
     option.value = type;
     //if price is 0, type is unavailable.
     if(price > 0){
-        option.innerHTML = type + " (" + price + " FEST)";
+        option.innerHTML = `${type} (${price} FEST)`;
         option.disabled = false;
     } else{
-        option.innerHTML = type + " Unavailable";
+        option.innerHTML = `${type} Unavailable`;
         option.disabled = true;
     }
     select.appendChild(option);
 }
 
-
-/**************************************
- * Async call function to contracts:
- */
-function ownerOfContract(contract){
-    return contract.methods.isOwner().call();
-}
-
-function owner(contract){
-    return contract.methods.owner().call();
-}
-
-function getTokenBalance(){
-    return tokenContract.methods.balanceOf(userAccount).call();
-}
-
-function getTicketAmount(){
-    return ticketContract.methods.balanceOf(userAccount).call();
-}
-
-function ticketsLeft(){
-    return ticketContract.methods.ticketsLeft().call();
-}
-
-function defaultPriceOf(type){
-    return ticketContract.methods.defaultPriceOf(type).call();
-}
-
-function maxTicketSupply(){
-    return ticketContract.methods.maxTicketSupply().call();
-}
-
 /**
- * @dev Gets price, approves contract to spend and buys ticket(s) if approved
+ * @dev display a notification
+ * @param {"info", "success", "error", "loading"} type
+ * @param time not set for error & loading messages by default
  */
-async function buyTicketViaContract(type, amount){
-    defaultPriceOf(type).then(function (price) {
-        approveContractToSpend(price*amount).then(function (approved){
-            if(approved){
-                console.log("letsog");
-                ticketContract.methods.buyTicketFromOrganizer(type, amount).send({from: userAccount, gas:300000}).then(function (res){
-                    console.log("succesfully bought " + amount + " " + type + " tickets.");
-                    loadUserData();
-                }).catch(function (err) {
-                    console.log(err);
-                    return err;
-                })
-            } else{
-                console.log("failed buying " + amount + " " + type + " tickets.");
-                return;
-            }
-        })
-    })
+function setNotification(type, title, message, time = 7000){
+    let notif = document.querySelector('#notification');
+    clearNotification();
+    let div = document.createElement('div');
+    let strong = document.createElement('strong');
+    let span = document.createElement('span');
+    let color;
+    switch(type){
+        case "loading":
+        case "info":
+            color = "blue"
+            break;
+        case "success":
+            color = "green";
+            break;
+        case "error":
+            color = "red";
+            break;
+    }
+    
+    //classes compliant with tailwindcss v2.2.17
+    span.className = "block sm:inline ml-2"
+    strong.className = "font-bold";
+    div.className = "border px-4 py-3 rounded relative";
+    div.classList.add(`bg-${color}-100`);
+    div.classList.add(`border-${color}-400`);
+    div.classList.add(`text-${color}-700`);
+
+    div.setAttribute("role", "alert");
+    strong.innerText = title;
+    span.innerText = message;
+    div.appendChild(strong);
+    div.appendChild(span);
+    notif.appendChild(div);
+    notif.style.visibility = "visible";
+
+    //errors and loading messages should not dissapear unless time is specified
+    if((type !== "error" && type !== "loading") || time !== 7000){
+        setTimeout(
+          function() {
+            div.style.visibility='hidden';
+          }, time);
+    }
 }
 
-function approveContractToSpend(amount){
-    console.log(userAccount);
-    return tokenContract.methods.approve(TICKET_ADDRESS, amount).send({from: userAccount}).on('receipt', function(receipt){
-        return receipt;
-    });
-}
-
-function mint(){
-    tokenContract.methods.mintTo(userAccount, 10000).call().then(function(res){
-        getTokenBalance().then(function (res) {
-            console.log(res);
-        })
-        return res;
-    }).catch(function(err) {
-        console.log(err);
-        return err;
-    });
+function clearNotification(){
+    let notif = document.querySelector('#notification');
+    notif.innerHTML = "";
 }

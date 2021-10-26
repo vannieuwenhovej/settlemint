@@ -275,7 +275,11 @@ contract('TicketOwnership', (accounts) => {
                 assert.equal(result.receipt.status, true);
             })
             it('Alice sets ticket for resale', async() => {
+                const a = await contract.isTicketOnResale(0);
+                assert.equal(a, false);
                 const result = await contract.tryApproveTicketSellOrder(0, 220, {from: alice});
+                const b = await contract.isTicketOnResale(0);
+                assert.equal(b, true);
                 const result2 = await contract.approve(contract.address, 0, {from: alice}); //approve contract to receive ticket
                 const result3 = await contract.getApproved(0, {from: alice});
                 assert.equal(result.receipt.status, true);
@@ -284,10 +288,17 @@ contract('TicketOwnership', (accounts) => {
             })
             it('Bob buys Alices ticket from resale', async() => {
                 const price = await contract.resalePriceOf(0);
+                const ticketOwner = await contract.ownerOf(0);
+                assert.equal(ticketOwner, alice);
                 assert.equal(price, 224);
                 await token.approve(contract.address, price, {from: bob}) //approve contract to spend {price} 
                 const result = await contract.buyResaleTicket(0, {from: bob});
                 assert.equal(result.receipt.status, true);
+                const ticketOwner2 = await contract.ownerOf(0);
+                assert.equal(ticketOwner2, bob);
+            })
+            it('Cannot buy ticket not on resale', async () => {
+                await utils.shouldThrow(contract.buyResaleTicket(0, {from: alice}));
             })
             it('Alices, bobs and organizers balances are updated', async() => {
                 const bBalance = await contract.balanceOf(bob);
