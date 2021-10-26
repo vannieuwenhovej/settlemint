@@ -4,8 +4,8 @@ const web3 = new Web3(rpcURL);
 
 var userAccount;
 
-var TOKEN_ADDRESS = "0x92f7fC35C35bD56b44052aD8Af7BDdA9989B9C00";
-var TICKET_ADDRESS = "0x125F8B3aC82839AFe6c73E73F0c1434B75E4c36E";
+var TOKEN_ADDRESS = "0x72f62bF33A5F9bB5839beDB7293E263b44Af1F9E";
+var TICKET_ADDRESS = "0x2dC2c0492778E073Cb99BaE1AAE140f6DF5bc99a";
 
 document.addEventListener("DOMContentLoaded", async function(event) {
         //Log in user if user clicks connect
@@ -44,39 +44,47 @@ async function initalizeWeb3(){
     if (metaMaskInstalled()) {
         //MetaMask is installed
         web3js = new Web3(web3.currentProvider);
-        //detect Metamask account change
-        window.ethereum.on('accountsChanged', async function (accounts) {
-            //account changed: set new account then load user data
-            await setAccount();
-        });
-        
-        //Initialize contract connection
-        tokenContract = new web3js.eth.Contract(FestTokenABI, TOKEN_ADDRESS);
-        ticketContract = new web3js.eth.Contract(TicketOwnershipABI, TICKET_ADDRESS);
-    
-        console.log(FestTokenABI);
-        console.log(TicketOwnershipABI);
-        
-
-        if(userAccount === undefined){
-            setNotification("loading", "", "Connect with an account")
-            await setAccount();
-        }
-
-        if(userAccount !== undefined){
-        
-            owner(ticketContract).then(function (res) {
-                console.log("owner ticket contract: " + res);
-            })
-            owner(tokenContract).then(function (res) {
-                console.log("owner token contract: " + res);
-                console.log("and you are: " + userAccount);
-            })
+        //if client is still connected to RPC URL
+        web3js.eth.net.isListening().then((s) => {
+            //detect Metamask account change
+            window.ethereum.on('accountsChanged', async function (accounts) {
+                //account changed: set new account then load user data
+                await setAccount();
+            });
             
-        //load App
-        loadApp();
-        }
-       
+            //Initialize contract connection
+            tokenContract = new web3js.eth.Contract(FestTokenABI, TOKEN_ADDRESS);
+            ticketContract = new web3js.eth.Contract(TicketOwnershipABI, TICKET_ADDRESS);
+            console.log(tokenContract);
+            console.log(ticketContract);
+            console.log(FestTokenABI);
+            console.log(TicketOwnershipABI);
+            
+    
+            if(userAccount === undefined){
+                setNotification("loading", "", "Connect with an account")
+                setAccount();
+            }
+    
+            if(userAccount !== undefined){
+                owner(ticketContract).then(function (res) {
+                    console.log("owner ticket contract: " + res);
+                })
+                owner(tokenContract).then(function (res) {
+                    console.log("owner token contract: " + res);
+                    console.log("and you are: " + userAccount);
+                })
+            }
+            //load App
+            loadApp();
+            
+            //client lost connection or unable to connect to node
+        }).catch((e) => {
+            setNotification('error', 'Unable to connect', 'to node or maintain connectivity');
+            console.log('Lost connection to the node, reconnecting');
+        })
+        
+    //User has no MetaMask
     } else {
         setNotification("loading", "No MetaMask", "Please install MetaMask.");
         //MetaMask not installed
@@ -85,12 +93,11 @@ async function initalizeWeb3(){
         }
         console.log("Please install MetaMask to connect and use app: https://metamask.io/download");
     }
-
-
 }
 
 
 function loadApp(){
+    
     loadAppData();
     document.querySelector("#btnBuyTicket").addEventListener('click', buyTicket);
     document.querySelector("#btnSellResaleTicket").addEventListener('click', sellResaleTicket);
@@ -113,10 +120,14 @@ function buyTicket(){
  * @dev load all user data from blockchain
  */
 function loadUserData(){
-    getTokenBalance().then(function (res) {
+    try{
+        getTokenBalance().then(function (res) {
         document.querySelector("span#tokenAmount").innerHTML = res;
+        setTicketsOwned();
     })
-    setTicketsOwned();
+    } catch(error){
+        setNotification('error', 'Failed', 'retrieving user data from contract')
+    }
 }
 
 /**
