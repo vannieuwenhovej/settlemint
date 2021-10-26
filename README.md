@@ -1,10 +1,102 @@
-# settlemint
+Hi SettleMint, 
+I'm excited to show you my solution for the assignment. I have worked hard with **Solidity** and **TailwindCSS** in these 3 weeks to deliver a smooth and functional application showcasing all the requirements set up in the assignment.  
+Sadly I was unable to  compose a Docker container where I could execute truffle console.
+That's why I have documented in detail how to set up the environment and put a lot of effort into error handling in case of unexpected behaviour. Besides a Docker compose file every other requirement is present. There is a demo in case something wouldn't be clear. Enjoy the project!
 
-### NPM packages used:
-- truffle
-- truffle-hdwallet-provider (?)
-### IDE:
-- editor: VS Code with extension juanblanco.solidity
+# 1.0 Installation & Setup
+> The installation in this documentation is done on a Windows machine.
+
+First we will set up Ganache CLI for running a local Ethereum environment. Afterwards we run Truffle console to get the one-time setup done like setting the Organizer. This setup only happens once at deployment.
+At last we set up a simple local web server to host the TailwindCSS web app and connect with the smart contracts.
+### 1.1 Installing dependencies
+- Make a new directory:
+`PS C:\> mkdir settlemint-demo`
+`PS C:\> cd settlemint-demo`
+- Clone the Git repository:
+`PS C:\settlemint-demo> git clone https://github.com/vannieuwenhovej/settlemint.git`
+- enter settlemint/truffleproject:
+`PS C:\settlemint-demo> cd settlemint\truffleproject`
+- install the dependencies:
+`PS C:\settlemint-demo\settlemint\truffleproject> npm install`
+- go to the webapp folder:
+`PS C:\settlemint-demo\settlemint\truffleproject> cd ../webapp`
+- install the dependencies here as well:
+`PS C:\settlemint-demo\settlemint\webapp> npm install`
+
+### 1.2 Running Ganache-cli
+- Next up open a new terminal for running Ganache in the background
+`PS C:\settlemint-demo\settlemint\truffleproject>`
+> Since I had problems running the command as global command I used the project's node_modules directory to run the command. I did this  as follow:
+> 
+`PS C:\settlemint-demo\settlemint\truffleproject>.\node_modules\.bin\ganache-cli -q`
+Now Ganache CLI is running on 127.0.0.1:8545 and uses 10 accounts on the network. The -q is used to not echo any updates and events.
+You should be seeing:
+`Listening on 127.0.0.1:8545`
+Let this terminal window run in the background.
+### 1.3 Migrating contracts and Initializing front end 
+- We're going to use Truffle to deploy the contracts and set up the one-time initalisation.
+- Enter a new terminal window and type:
+`PS C:\settlemint-demo\settlemint\truffleproject> .\node_modules\.bin\truffle migrate`
+This should result in the total deployment of `3` contratcs and an estimated final cost of around `0.13 ETH`.
+- We need the contract addresses in order for the webapp to interact with them.
+-- Scroll to find the contract address of TicketOwnership and copy it.
+-- Next, go to `webapp/public/script.js` and open the .js file in an editor of choice.
+-- At to top of `script.js` there is a variable called `TICKET_ADDRESS`, set the address you just copied as the 			  value of this variable. 
+- We need to do the same for FestToken. Copy the address of the FestToken contract in the output of `truffle migrate` and set as the value of `TOKEN_ADDRESS` at the top of the `script.js` file.
+- Now we can close the .js editor but not yet the terminal.
+### 1.4 (Optional) Running the tests
+- There are tests in this project. Check if they succeed with running the following command:
+`PS C:\settlemint-demo\settlemint\truffleproject> .\node_modules\.bin\truffle test`
+- This runs a variety of tests for the FestToken and TicketOwnership funtionality of the smart contracts. Note that the tests are divided as in the context of Primary market and Secondary market.
+
+### 1.5 Initializing one-time setup
+- Now we initalize the required steps to interact with the smart contracts.
+- Enter truffle console:
+`PS C:\settlemint-demo\settlemint\truffleproject> .\node_modules\.bin\truffle console`
+`truffle(development)>`
+- Get the contracts:
+`truffle(development)> let ticket = await TicketOwnership.deployed()`
+`truffle(development)> undefined`
+`truffle(development)> let token = await FestToken.deployed()`
+`truffle(development)> undefined`
+- Set the tokens contract address in the ticket's contract:
+`truffle(development)> ticket.setFestTokenAddress(token.address);`
+--> should print a succesful transaction
+- Set the organizer for the festival. For ease of use as a demo, let's pick ourselves, the deployer of the contracts:
+`truffle(development)> ticket.setOrganizer(accounts[0]);`
+--> should print a succesful transaction
+- Next we can set the prices of different 'ticket types'. We can implement as many ticket types as we want on the smart contracts but the ones defined in the frontend web app are 'Normal', 'Special' and 'VIP'.
+- Since we, the owner of the contracts are the Organizer as well, we can set the default prices of these tickets.
+- Let's go ahead and set some prices.
+- `truffle(development)> ticket.setDefaultPriceFor("Normal", 100);`
+- `truffle(development)> ticket.setDefaultPriceFor("Special", 300);`
+- `truffle(development)> ticket.setDefaultPriceFor("VIP", 500);`
+Now the tickets are set!
+
+Ofcourse we need some FEST tokens in our accounts to buy a ticket.
+We can print FEST to an address. Let's mint 1000 FEST (or a different amount) to the first 4 addresses:
+- `truffle(development)>   token.mintTo(accounts[0], 1000);`
+- `truffle(development)>   token.mintTo(accounts[1], 1000);`
+- `truffle(development)>   token.mintTo(accounts[2], 1000);`
+- `truffle(development)>   token.mintTo(accounts[3], 1000);`
+- `truffle(development)>   token.mintTo(accounts[4], 1000);`
+- exit the truffle console by typing `.exit` enter.
+
+### 1.6 Initializing Local HTTP Host and MetaMask:
+- If you haven't already installed MetaMask, please install it for your browser: https://metamask.io/download.html
+- If our webapp is just ran statically from a file, we can't interact with it through MetaMask. Therefore our webapp has to be hosted on a HTPP web server in order to interact with the plugin.
+- An easy node module is `http-server` to run an index file fast on localhost.
+- In this tutorial I am using the VS Code plugin:  `ritwickdey.liveserver`. If you're using  VS Code you can install it from the marketplace by searching for its name in the extensions marketplace. After installing this plugin, all you have to do is right-click in index.html and click 'Open with Live Server'. 
+- If you installed `http-server` you can use the `http-server index.html` command. For specifying the port and more visit the quick docs: https://www.npmjs.com/package/http-server
+
+### 1.7 Adding the accounts to MetaMask:
+- When MetaMask is open click the networks list and click on Localhost 8545.
+- Our open Ganache terminal displays accounts where we have sent FEST to, to the first addresses.
+- In MetaMask, Add an account by clicking on your accounts tab and clicking "Import account".
+- Next copy the first private key from the Ganache accounts list and import it.
+- To test the secondary marketplace funtionality throught the webapp I recommend to import the second account as well to trade tickets.
+### 1.8 Ready to go!
+- Now you can buy tickets via the web app from the organizer. Test out the functionality and try to sell a ticket on the marketplace for an increased price and buying the same ticket from a different account.
 
 
 # Assignment
