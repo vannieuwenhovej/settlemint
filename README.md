@@ -102,8 +102,18 @@ We can print FEST to an address. Let's mint 1000 FEST (or a different amount) to
 ### 1.8 Ready to go!
 - Now you can buy tickets via the web app from the organizer. Test out the functionality and try to sell a ticket on the marketplace for an increased price and buying the same ticket from a different account.
 
+# 2.0 How it works
+## 2.1 Organizer & Owner
+Upon deployment of the smart contracts, the owner sets an Organizer. This could be the owner himself as well. The organizer can mint free tickets to an address and can set the default prices of tickets. The organizer can set a monetization fee which is calculated on the price. A 5% fee on a 200 FEST resale trade would result in 200 FEST going to the seller and 10 FEST going to the Organizer. The buyer pays 210 FEST.
+## 2.2 Secondary market
+The owner of a ticket can put a ticket for resale. The ticket gets approved for resale but is still owned by the seller. The moment a buyer accepts this order the ticket is changed of owner. If monetization is set, a fee is calculated for the organizer. With regards to time for this assignment and to not go over board I kept the front end simple with just an input for ID and ticket. 
+**The IDs given to tickets are corresponding to their position in the array.** So if you buy the first ticket of the event, it will be ticket with ID 0. Try beginning with 0 in the input field for selling and see if you're the owner.
+## 2.3 Standards & Interfaces
+The standard for the FEST token is ERC20 since it is the most interoperable and popular interface for creating tokens on Ethereum. Ticket uses the ERC721Enumerable interface by openzeppelin and allows for safe functionality as well as interoperability. 
+## 2.4 Supply
+The supply for the FEST token is not capped. Initially the owner can mint tokens to the organizer or any other address. The burden is on the organizer (or the owner) to distribute and sell tokens. The max supply for tickets is 1000 and is set at deployment as a parameter for the constructor of the contract. However the organizer can still change the supply later on if he wishes to do so.
 
-# Assignment
+# 3.0 Assignment (copy)
 
 The assignment is crafted in such a way we can evaluate concretely if you (at this time) have the skills we are looking for since it is an accurate example of a ticket that might be assigned to you in our first week.
 
