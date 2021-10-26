@@ -60,9 +60,7 @@ This should result in the total deployment of `3` contratcs and an estimated fin
 `truffle(development)>`
 - Get the contracts:
 `truffle(development)> let ticket = await TicketOwnership.deployed()`
-`truffle(development)> undefined`
 `truffle(development)> let token = await FestToken.deployed()`
-`truffle(development)> undefined`
 - Set the tokens contract address in the ticket's contract:
 `truffle(development)> ticket.setFestTokenAddress(token.address);`
 --> should print a succesful transaction
