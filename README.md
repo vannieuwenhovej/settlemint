@@ -1,6 +1,6 @@
 # Hi SettleMint, 
 I'm excited to show you my solution for the assignment. I have worked hard with **Solidity** and **TailwindCSS** in these 3 weeks to deliver a smooth and functional application showcasing all the requirements set up in the assignment.  
-Sadly I was unable to  compose a Docker container where I could execute truffle console.
+Sadly I was unable to  compose a Docker container where I could execute truffle console and automate commands.
 That's why I have documented in detail how to set up the environment and put a lot of effort into error handling in case of unexpected behaviour. Besides a Docker compose file every other requirement is present. There is a demo in case something wouldn't be clear. Enjoy the project!
 
 # 1.0 Installation & Setup
