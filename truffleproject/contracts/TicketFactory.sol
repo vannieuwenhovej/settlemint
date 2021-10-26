@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.6.0 <0.9.0;
 
-import "../node_modules/@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "../node_modules/@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "../node_modules/@openzeppelin/contracts/access/Ownable.sol";
 // see spec: https://github.com/OpenZeppelin/openzeppelin-contracts
 
 //TODO: write tests to check addresses and functionality
 //TODO: make currency token ERC20
-contract TicketFactory is Ownable, ERC721 {
+contract TicketFactory is Ownable, ERC721Enumerable {
 
     uint public maxTicketSupply;
     Ticket[] public tickets;
