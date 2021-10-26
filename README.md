@@ -3,6 +3,7 @@ I'm excited to show you my solution for the assignment. I have worked hard with 
 Sadly I was unable to  compose a Docker container where I could execute truffle console and automate commands.
 That's why I have documented in detail how to set up the environment and put a lot of effort into error handling in case of unexpected behaviour. Besides a Docker compose file every other requirement is present. There is a demo in case something wouldn't be clear. Enjoy the project!
 Installation takes around 8 minutes.
+![image2](https://user-images.githubusercontent.com/51959960/138946845-f77348a7-1f02-4eae-9bee-abfe3a4e41a6.png)
 
 # 1.0 Installation & Setup
 > The installation in this documentation is done on a Windows machine.
@@ -89,6 +90,7 @@ We can print FEST to an address. Let's mint 1000 FEST (or a different amount) to
 - An easy node module is `http-server` to run an index file fast on localhost.
 - In this tutorial I am using the VS Code plugin:  `ritwickdey.liveserver`. If you're using  VS Code you can install it from the marketplace by searching for its name in the extensions marketplace. After installing this plugin, all you have to do is right-click in index.html and click 'Open with Live Server'. 
 - If you installed `http-server` you can use the `http-server index.html` command. For specifying the port and more visit the quick docs: https://www.npmjs.com/package/http-server
+![image](https://user-images.githubusercontent.com/51959960/138946774-2387e718-0b47-460f-83ff-419660966381.png)
 
 ### 1.7 Adding the accounts to MetaMask:
 - When MetaMask is open click the networks list and click on Localhost 8545.
@@ -96,6 +98,7 @@ We can print FEST to an address. Let's mint 1000 FEST (or a different amount) to
 - In MetaMask, Add an account by clicking on your accounts tab and clicking "Import account".
 - Next copy the first private key from the Ganache accounts list and import it.
 - To test the secondary marketplace funtionality throught the webapp I recommend to import the second account as well to trade tickets.
+
 ### 1.8 Ready to go!
 - Now you can buy tickets via the web app from the organizer. Test out the functionality and try to sell a ticket on the marketplace for an increased price and buying the same ticket from a different account.
 
