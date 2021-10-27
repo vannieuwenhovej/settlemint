@@ -1,9 +1,10 @@
 # Hi SettleMint, 
 I'm excited to show you my solution for the assignment. I have worked hard with **Solidity** and **TailwindCSS** in these 3 weeks to deliver a smooth and functional application showcasing all the requirements set up in the assignment.  
 Sadly I was unable to  compose a Docker container where I could execute truffle console and automate commands.
-That's why I have documented in detail how to set up the environment and put a lot of effort into error handling in case of unexpected behaviour. Besides a Docker compose file every other requirement is present. A demo video is found here: https://github.com/vannieuwenhovej/settlemint/blob/demo/demo.mp4 Enjoy the project!
+That's why I have documented in detail how to set up the environment and put a lot of effort into error handling in case of unexpected behaviour. Besides a Docker compose file every other requirement is present. Enjoy the project!
 Installation takes around 8 minutes.
 ![image2](https://user-images.githubusercontent.com/51959960/138946845-f77348a7-1f02-4eae-9bee-abfe3a4e41a6.png)
+A demo video can be found here: https://github.com/vannieuwenhovej/settlemint/blob/demo/demo.mp4
 
 # 1.0 Installation & Setup
 > The installation in this documentation is done on a Windows machine.
