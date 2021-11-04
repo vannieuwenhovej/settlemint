@@ -114,6 +114,8 @@ The standard for the FEST token is ERC20 since it is the most interoperable and 
 ## 2.4 Supply
 The supply for the FEST token is not capped. Initially the owner can mint tokens to the organizer or any other address. The burden is on the organizer (or the owner) to distribute and sell tokens. The max supply for tickets is 1000 and is set at deployment as a parameter for the constructor of the contract. However the organizer can still change the supply later on if he wishes to do so.
 
+### Contact
+Contact and feedback via mail: vn_jonathan@hotmail.
 # 3.0 Assignment (copy)
 
 The assignment is crafted in such a way we can evaluate concretely if you (at this time) have the skills we are looking for since it is an accurate example of a ticket that might be assigned to you in our first week.
